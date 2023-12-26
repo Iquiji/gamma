@@ -1,0 +1,18 @@
+[package]
+name = "gamma"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+burn = { version = "0.11.1", features=["train", "wgpu", "fusion", "tch"]}
+
+# Serialization
+serde = { version = "1", features =["derive"]}
+
+# Images
+image = "0.24.7"
+
+# time
+chrono = "0.4"
