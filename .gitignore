@@ -1,3 +1,6 @@
 /target
 Cargo.lock
 training_data.sqlite
+pytorch_dcgan.py
+gan_progress_output/*
+artifacts/
