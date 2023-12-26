@@ -1,4 +1,4 @@
-use burn::{module::Module, config::Config, nn::{conv::{ConvTranspose2d, Conv2d, ConvTranspose2dConfig, Conv2dConfig}, BatchNorm, ReLU, BatchNormConfig, loss::{CrossEntropyLoss, BinaryCrossEntropyLossConfig}, Linear, LinearConfig, Initializer}, tensor::{Tensor, backend::Backend, activation::sigmoid, Int}, train::ClassificationOutput, backend::autodiff::ops::Init};
+use burn::{module::Module, config::Config, nn::{conv::{ConvTranspose2d, Conv2d, ConvTranspose2dConfig, Conv2dConfig}, BatchNorm, ReLU, BatchNormConfig, loss::{CrossEntropyLoss, BinaryCrossEntropyLossConfig}, Linear, LinearConfig, Initializer, Dropout, DropoutConfig}, tensor::{Tensor, backend::Backend, activation::sigmoid, Int}, train::ClassificationOutput, backend::autodiff::ops::Init};
 use crate::leaky_relu::leaky_relu;
 
 // See: https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
@@ -7,8 +7,10 @@ pub struct Generator<B: Backend>{
     projection: Linear<B>,
     conv1: ConvTranspose2d<B>,
     batch_norm1: BatchNorm<B,2>,
+    dropout1: Dropout,
     conv2: ConvTranspose2d<B>,
     batch_norm2: BatchNorm<B,2>,
+    dropout2: Dropout,
     conv3: ConvTranspose2d<B>,
     batch_norm3: BatchNorm<B,2>,
     conv4: ConvTranspose2d<B>,
@@ -20,6 +22,8 @@ pub struct GeneratorConfig {
     pub latent_vector_size: usize,
     #[config(default = "64")]
     feature_map_size: usize,
+    #[config(default = "0.5")]
+    dropout: f64,
 }
 
 impl GeneratorConfig{
@@ -28,8 +32,10 @@ impl GeneratorConfig{
             projection: LinearConfig::new(100, 1024 * 4 * 4).init(),
             conv1: ConvTranspose2dConfig::new([self.feature_map_size * 16, self.feature_map_size * 8], [4,4]).with_stride([2, 2]).with_padding([1,1]).with_initializer(conv_initializer.clone()).init(),
             batch_norm1: BatchNormConfig::new(self.feature_map_size * 8).init(),
+            dropout1: DropoutConfig::new(self.dropout).init(),
             conv2: ConvTranspose2dConfig::new([self.feature_map_size * 8, self.feature_map_size * 4], [4,4]).with_stride([2,2]).with_padding([1,1]).with_initializer(conv_initializer.clone()).init(),
             batch_norm2: BatchNormConfig::new(self.feature_map_size * 4).init(),
+            dropout2: DropoutConfig::new(self.dropout).init(),
             conv3: ConvTranspose2dConfig::new([self.feature_map_size * 4, self.feature_map_size * 2], [4,4]).with_stride([2,2]).with_padding([1,1]).with_initializer(conv_initializer.clone()).init(),
             batch_norm3: BatchNormConfig::new(self.feature_map_size * 2).init(),
             conv4: ConvTranspose2dConfig::new([self.feature_map_size * 2, 3], [4,4]).with_stride([2,2]).with_padding([1,1]).with_initializer(conv_initializer.clone()).init(),
@@ -51,14 +57,19 @@ impl<B: Backend> Generator<B> {
         let x = self.conv1.forward(x);
         let x = self.batch_norm1.forward(x);
         let x = leaky_relu(x);
+        let x = self.dropout1.forward(x);
+
         // Round 2
         let x = self.conv2.forward(x);
         let x = self.batch_norm2.forward(x);
         let x = leaky_relu(x);
+        let x = self.dropout2.forward(x);
+
         // Round 3
         let x = self.conv3.forward(x);
         let x = self.batch_norm3.forward(x);
         let x = leaky_relu(x);
+        
         // Round 4
         let x = self.conv4.forward(x);
         x.tanh() // [batch, 3, height, width]

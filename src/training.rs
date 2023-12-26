@@ -20,7 +20,7 @@ pub struct TrainingConfig {
     pub batch_size: usize,
     #[config(default = 2)]
     pub num_workers: usize,
-    #[config(default = 4242)]
+    #[config(default = 42)]
     pub seed: u64,
     #[config(default = 0.0002)]
     pub learning_rate: f64,
@@ -66,7 +66,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
         for (iteration, batch) in dataloader.iter().enumerate(){
             let iter_start_time = Instant::now();
 
-            let noise_for_images = batch.images.random_like(Distribution::Normal(0.0, 0.4));
+            let noise_for_images = batch.images.random_like(Distribution::Normal(0.0, 0.3));
 
             // Update Discriminator Network
             let mut accumulated_gradients = GradientsAccumulator::<Discriminator<B>>::new();
@@ -102,6 +102,7 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
             let grads = GradientsParams::from_grads(generator_loss_grads, &generator);
             generator = optimizer_gen.step(config.learning_rate, generator, grads);
 
+
             let end_iter_time = Instant::now();
 
             num_in_ring_buffer = if num_in_ring_buffer < RING_BUFFER_SIZE {
@@ -136,7 +137,8 @@ pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, dev
                 let image_generated = generator.forward(progress_image_latents.clone().reshape([1,config.generator.latent_vector_size])).reshape([3,IMAGE_WIDTH, IMAGE_HEIGHT]);
                 tensor_to_image(&format!("gan_progress_output/{epoch}-{iteration}-progress.png"), image_generated);
             }
-            if iteration % 40 == 0{
+
+            if iteration % 100 == 0{
                 generator
                     .clone()
                     .save_file(format!("{artifact_dir}/generator-{epoch}-{iteration}"), &CompactRecorder::new())

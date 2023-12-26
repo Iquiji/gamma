@@ -26,14 +26,14 @@ fn main() {
 }
 
 fn run() {
-    type MyBackend = Wgpu<burn::backend::wgpu::OpenGl, f32, i32>;
-    // type MyBackend = Wgpu<burn::backend::wgpu::AutoGraphicsApi, f32, i32>;
-    type MyAutodiffBackend = Fusion<MyBackend>;
-    type FusionAutodiff = Autodiff<MyAutodiffBackend>;
+    // type MyBackend = Wgpu<burn::backend::wgpu::OpenGl, f32, i32>;
+    // // type MyBackend = Wgpu<burn::backend::wgpu::AutoGraphicsApi, f32, i32>;
+    // type MyAutodiffBackend = MyBackend;//Fusion<MyBackend>;
+    // type FusionAutodiff = Autodiff<MyAutodiffBackend>;
 
     let device = burn::backend::wgpu::WgpuDevice::BestAvailable;
-    // type FusionAutodiff = Autodiff<LibTorch<f32>>;
-    // let device = LibTorchDevice::Cpu;
+    type FusionAutodiff = Autodiff<LibTorch<f32>>;
+    let device = LibTorchDevice::Cpu;
 
     training::train::<FusionAutodiff>(
         "./artifacts",
