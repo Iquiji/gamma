@@ -1,5 +1,6 @@
 use std::env::args;
-use burn::backend::LibTorch;
+use burn::backend::ndarray::NdArrayDevice;
+use burn::backend::{LibTorch, NdArray};
 use burn::backend::libtorch::LibTorchDevice;
 use burn::backend::wgpu::{GraphicsApi, self};
 use burn::optim::AdamConfig;
@@ -26,16 +27,18 @@ fn main() {
 }
 
 fn run() {
-    // type MyBackend = Wgpu<burn::backend::wgpu::OpenGl, f32, i32>;
     // // type MyBackend = Wgpu<burn::backend::wgpu::AutoGraphicsApi, f32, i32>;
-    // type MyAutodiffBackend = MyBackend;//Fusion<MyBackend>;
-    // type FusionAutodiff = Autodiff<MyAutodiffBackend>;
+    type MyBackend = Wgpu<AutoGraphicsApi, f32, i32>;//Fusion<MyBackend>;
+    type MyAutodiffBackend = Autodiff<MyBackend>;
 
     let device = burn::backend::wgpu::WgpuDevice::BestAvailable;
-    type FusionAutodiff = Autodiff<LibTorch<f32>>;
-    let device = LibTorchDevice::Cpu;
+    // type MyAutodiffBackend = Autodiff<LibTorch<f32>>;
+    // let device = LibTorchDevice::Cpu;
 
-    training::train::<FusionAutodiff>(
+    // type MyAutodiffBackend = Autodiff<NdArray<f32>>;
+    // let device = NdArrayDevice::Cpu;
+
+    training::train::<MyAutodiffBackend>(
         "./artifacts",
         training::TrainingConfig::new(GeneratorConfig::new(), DiscriminatorConfig::new()),
         device,
