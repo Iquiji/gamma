@@ -2,7 +2,7 @@ use std::env::args;
 use burn::backend::ndarray::NdArrayDevice;
 use burn::backend::{LibTorch, NdArray};
 use burn::backend::libtorch::LibTorchDevice;
-use burn::backend::wgpu::{GraphicsApi, self};
+use burn::backend::wgpu::{GraphicsApi, self, OpenGl};
 use burn::optim::AdamConfig;
 use burn::backend::{Autodiff, Wgpu, wgpu::AutoGraphicsApi, Fusion};
 use burn::tensor::f16;
@@ -28,7 +28,7 @@ fn main() {
 
 fn run() {
     // // type MyBackend = Wgpu<burn::backend::wgpu::AutoGraphicsApi, f32, i32>;
-    type MyBackend = Wgpu<AutoGraphicsApi, f32, i32>;//Fusion<MyBackend>;
+    type MyBackend = Wgpu<OpenGl, f32, i32>;//Fusion<MyBackend>;
     type MyAutodiffBackend = Autodiff<MyBackend>;
 
     let device = burn::backend::wgpu::WgpuDevice::BestAvailable;
